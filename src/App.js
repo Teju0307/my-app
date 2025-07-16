@@ -1,23 +1,42 @@
-import logo from './logo.svg';
+import React, { useState } from 'react';
+import { ethers } from 'ethers';
 import './App.css';
 
 function App() {
+  const [wallet, setWallet] = useState(null);
+
+  const generateWallet = () => {
+    const randomWallet = ethers.Wallet.createRandom();
+    setWallet({
+      address: randomWallet.address,
+      privateKey: randomWallet.privateKey,
+      mnemonic: randomWallet.mnemonic.phrase
+    });
+  };
+
+  const fetchWallet = () => {
+    if (wallet) {
+      alert(`Address: ${wallet.address}`);
+    } else {
+      alert('No wallet found. Please generate one first.');
+    }
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>Create Ethereum Wallet</h1>
+      <div style={{ marginBottom: '20px' }}>
+        <button className="generate" onClick={generateWallet}>Generate Wallet</button>
+        <button className="fetch" onClick={fetchWallet}>Fetch Wallet</button>
+      </div>
+
+      {wallet && (
+        <div className="wallet-box">
+          <p><strong>Address:</strong> {wallet.address}</p>
+          <p><strong>Private Key:</strong> {wallet.privateKey}</p>
+          <p><strong>Mnemonic:</strong> {wallet.mnemonic}</p>
+        </div>
+      )}
     </div>
   );
 }
