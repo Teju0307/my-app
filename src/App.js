@@ -1,40 +1,84 @@
-import React, { useState } from 'react';
-import { ethers } from 'ethers';
-import './App.css';
+import React, { useState } from "react";
+import { ethers } from "ethers";
 
 function App() {
-  const [wallet, setWallet] = useState(null);
+  const [walletData, setWalletData] = useState(null);
+  const [walletName, setWalletName] = useState("");
+  const [searchName, setSearchName] = useState("");
 
-  const generateWallet = () => {
-    const randomWallet = ethers.Wallet.createRandom();
-    setWallet({
-      address: randomWallet.address,
-      privateKey: randomWallet.privateKey,
-      mnemonic: randomWallet.mnemonic.phrase
+  const generateAndSaveWallet = async () => {
+    if (!walletName.trim()) {
+      alert("Enter a name for the wallet");
+      return;
+    }
+
+    const wallet = ethers.Wallet.createRandom();
+
+    const newWallet = {
+      name: walletName,
+      address: wallet.address,
+      privateKey: wallet.privateKey,
+      mnemonic: wallet.mnemonic.phrase,
+    };
+
+    const res = await fetch("http://localhost:5000/api/wallet", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newWallet),
     });
+
+    const result = await res.json();
+    alert("Wallet saved!");
   };
 
-  const fetchWallet = () => {
-    if (wallet) {
-      alert(`Address: ${wallet.address}`);
+  const fetchWalletByName = async () => {
+    if (!searchName.trim()) {
+      alert("Enter a wallet name to search");
+      return;
+    }
+
+    const res = await fetch(`http://localhost:5000/api/wallet/${searchName}`);
+    const data = await res.json();
+
+    if (data.error) {
+      alert("Wallet not found");
     } else {
-      alert('No wallet found. Please generate one first.');
+      setWalletData(data);
     }
   };
 
   return (
-    <div className="App">
-      <h1>Create Ethereum Wallet</h1>
-      <div style={{ marginBottom: '20px' }}>
-        <button className="generate" onClick={generateWallet}>Generate Wallet</button>
-        <button className="fetch" onClick={fetchWallet}>Fetch Wallet</button>
+    <div style={{ textAlign: "center", marginTop: "50px" }}>
+      <h1>🦊 Mini Wallet App</h1>
+
+      <div style={{ marginBottom: "20px" }}>
+        <input
+          type="text"
+          placeholder="Enter name to create wallet"
+          value={walletName}
+          onChange={(e) => setWalletName(e.target.value)}
+          style={{ marginRight: "10px" }}
+        />
+        <button onClick={generateAndSaveWallet}>Generate & Save Wallet</button>
       </div>
 
-      {wallet && (
-        <div className="wallet-box">
-          <p><strong>Address:</strong> {wallet.address}</p>
-          <p><strong>Private Key:</strong> {wallet.privateKey}</p>
-          <p><strong>Mnemonic:</strong> {wallet.mnemonic}</p>
+      <div style={{ marginBottom: "20px" }}>
+        <input
+          type="text"
+          placeholder="Enter name to fetch wallet"
+          value={searchName}
+          onChange={(e) => setSearchName(e.target.value)}
+          style={{ marginRight: "10px" }}
+        />
+        <button onClick={fetchWalletByName}>Fetch Wallet by Name</button>
+      </div>
+
+      {walletData && (
+        <div style={{ marginTop: "30px" }}>
+          <p><strong>Name:</strong> {walletData.name}</p>
+          <p><strong>Address:</strong> {walletData.address}</p>
+          <p><strong>Private Key:</strong> {walletData.privateKey}</p>
+          <p><strong>Mnemonic:</strong> {walletData.mnemonic}</p>
         </div>
       )}
     </div>
