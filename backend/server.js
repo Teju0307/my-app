@@ -1,9 +1,15 @@
 const express = require("express");
 const mongoose = require("mongoose");
-// const cors = require("cors");
+const cors = require("cors");
 
 const app = express();
-// app.use(cors());
+const corsOptions = {
+  origin: "http://localhost:3000",
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"],
+};
+app.use(cors(corsOptions));
+// Handle preflight requests for all routes
 app.use(express.json());
 
 // Connect to MongoDB Atlas
@@ -21,6 +27,14 @@ const walletSchema = new mongoose.Schema({
 });
 
 const Wallet = mongoose.model("Wallet", walletSchema);
+app.use((req, res, next) => {
+  console.log(`[${req.method}] ${req.path} from ${req.headers.origin}`);
+  next();
+});
+// Health check
+app.get("/", (req, res) => {
+  res.send("API is running");
+});
 
 // POST: Save wallet
 app.post("/api/wallet", async (req, res) => {
@@ -43,6 +57,6 @@ app.get("/api/wallet/:name", async (req, res) => {
 });
 
 // Start server
-app.listen(5000, () => {
-  console.log("Server running on http://localhost:5000");
+app.listen(5001, () => {
+  console.log("Server running on http://localhost:5001");
 });
